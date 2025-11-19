@@ -16,8 +16,8 @@ app.use('/api/ocupacao', ocupacaoRoutes);
 app.get('/', (req, res) => {
   res.json({
     status: 'success',
-    mensagem: 'Sistema de Gestão de Motéis - API Online',
-    versao: '1.0.0'
+    mensagem: 'Sistema de Gerenciamento de Hotel - API Online',
+    versao: '0.1.0'
   });
 });
 
