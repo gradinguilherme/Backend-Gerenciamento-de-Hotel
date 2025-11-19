@@ -16,6 +16,10 @@ Backend-Gerenciamento-de-Hotel/
 ├── src/
 │   ├── controllers/       # Controllers - lógica de controle das requisições
 │   │   └── ocupacao.controller.js
+│   ├── dto/              # Data Transfer Objects - validação de dados
+│   │   └── checkIn.dto.js
+│   ├── services/         # Camada de serviço - lógica de negócio
+│   │   └── checkIn.service.js
 │   └── routes/           # Definição das rotas da API
 │       └── ocupacao.routes.js
 ├── .env                  # Variáveis de ambiente (não versionado)
@@ -38,14 +42,16 @@ npm install express dotenv
 ```
 
 ### 3. Configuração da Estrutura
-- Criação da estrutura de pastas (src/controllers, src/routes)
+- Criação da estrutura de pastas (src/controllers, src/routes, src/services, src/dto)
 - Configuração do arquivo `.env` com variáveis de ambiente
 - Criação do `.gitignore` para proteção de arquivos sensíveis
 
 ### 4. Implementação da Arquitetura em Camadas
 - **server.js**: Configuração do servidor Express e middlewares
 - **Routes**: Definição dos endpoints da API
-- **Controllers**: Lógica de negócio e manipulação de requisições
+- **Controllers**: Manipulação de requisições HTTP
+- **DTOs**: Validação e formatação de dados de entrada
+- **Services**: Lógica de negócio (com implementação mockada)
 
 ## ⚙️ Configuração e Instalação
 
@@ -100,22 +106,60 @@ O servidor estará disponível em `http://localhost:8080`
 **Corpo da Requisição:**
 ```json
 {
-  "quartoId": "101",
-  "placaVeiculo": "ABC-1234"
+  "quarto_id": "101",
+  "placa": "ABC-1234"
 }
 ```
+*Nota: Também aceita `quartoId` e `placaVeiculo` (compatibilidade)*
 
 **Resposta de Sucesso (201):**
 ```json
 {
   "status": "success",
-  "mensagem": "Check-in realizado com sucesso - MOCK",
+  "mensagem": "Check-in realizado com sucesso",
   "dados": {
-    "quartoId": "101",
-    "placaVeiculo": "ABC-1234"
+    "id": 6790,
+    "quarto_id": "101",
+    "placa": "ABC-1234",
+    "data_check_in": "2025-11-19T03:28:05.683Z",
+    "status": "ativo",
+    "created_at": "2025-11-19T03:28:05.683Z"
   }
 }
 ```
+
+**Resposta de Erro - Validação (400):**
+```json
+{
+  "status": "error",
+  "mensagem": "Dados de entrada inválidos",
+  "erros": [
+    {
+      "field": "quarto_id",
+      "message": "O campo quarto_id é obrigatório"
+    },
+    {
+      "field": "placa",
+      "message": "O campo placa é obrigatório"
+    }
+  ]
+}
+```
+
+**Resposta de Erro - Quarto Ocupado (400):**
+```json
+{
+  "status": "error",
+  "mensagem": "Quarto não está disponível para check-in",
+  "dados": null
+}
+```
+
+**Validações Implementadas:**
+- ✅ `quarto_id` é obrigatório (string ou número)
+- ✅ `placa` é obrigatória (string)
+- ✅ Formato de placa: ABC-1234 (padrão antigo) ou ABC1D23 (Mercosul)
+- ✅ Verificação de disponibilidade do quarto (mockada)
 
 ## 🧪 Testando a API
 
@@ -124,10 +168,20 @@ O servidor estará disponível em `http://localhost:8080`
 # Teste de status da API
 curl http://localhost:8080/
 
-# Teste de check-in
+# Teste de check-in (sucesso)
 curl -X POST http://localhost:8080/api/ocupacao/check-in \
   -H "Content-Type: application/json" \
-  -d '{"quartoId": "101", "placaVeiculo": "ABC-1234"}'
+  -d '{"quarto_id": "101", "placa": "ABC-1234"}'
+
+# Teste com placa Mercosul
+curl -X POST http://localhost:8080/api/ocupacao/check-in \
+  -H "Content-Type: application/json" \
+  -d '{"quarto_id": "105", "placa": "ABC1D23"}'
+
+# Teste de validação (erro 400)
+curl -X POST http://localhost:8080/api/ocupacao/check-in \
+  -H "Content-Type: application/json" \
+  -d '{}'
 ```
 
 ### Usando Postman ou Insomnia
@@ -138,8 +192,8 @@ curl -X POST http://localhost:8080/api/ocupacao/check-in \
 5. Body (raw JSON):
 ```json
 {
-  "quartoId": "101",
-  "placaVeiculo": "ABC-1234"
+  "quarto_id": "101",
+  "placa": "ABC-1234"
 }
 ```
 
@@ -153,24 +207,23 @@ npm start
 npm run dev
 ```
 
-## 🔜 Próximos Passos
+## ✅ Checklist Rápido
 
-- [ ] Implementar camada de Service (lógica de negócio)
-- [ ] Integração com banco de dados
-- [ ] Implementar validações de dados
-- [ ] Adicionar autenticação e autorização
-- [ ] Implementar rotas de check-out
-- [ ] Adicionar testes unitários e de integração
-- [ ] Documentação com Swagger/OpenAPI
+Antes de começar, verifique se você completou todas as etapas:
 
-## 📄 Licença
+- [ ] Node.js 14+ instalado (recomendado: versão 18 ou superior)
+- [ ] Dependências instaladas (`npm install`)
+- [ ] Arquivo `.env` configurado com `PORT=8080`
+- [ ] Servidor iniciado (`npm start`) e acessível em `http://localhost:8080`
+- [ ] Endpoint de teste respondendo (`GET /`)
+- [ ] Endpoint de check-in funcionando (`POST /api/ocupacao/check-in`)
 
-ISC
+## 📚 Referências
 
-## 👤 Autor
+- [Node.js Documentation](https://nodejs.org/docs/latest/api/)
+- [Express.js Guide](https://expressjs.com/en/guide/routing.html)
+- [REST API Best Practices](https://restfulapi.net/)
+- [HTTP Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
+- [DTO Pattern](https://martinfowler.com/eaaCatalog/dataTransferObject.html)
 
-**gradinguilherme**
 
----
-
-⭐ Desenvolvido como parte do Sistema de Gestão de Motéis
